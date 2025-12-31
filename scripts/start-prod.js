@@ -10,7 +10,7 @@ const fixDatabaseUrl = () => {
     } else {
         console.log('DATABASE_URL check passed or not set (using default)');
     }
-    
+
     // Debug output (masking the actual path for security if needed, but here it's likely internal)
     console.log(`Using DATABASE_URL: ${process.env.DATABASE_URL}`);
 };
@@ -37,7 +37,7 @@ const runCommand = (command, args) => {
 const start = async () => {
     try {
         console.log('==> Starting Production Server Script...');
-        
+
         // 1. Fix Environment
         fixDatabaseUrl();
 
@@ -46,8 +46,12 @@ const start = async () => {
         // We use 'npx' (or just 'prisma' if in path) to run prisma
         // Using 'npx prisma db push' is safer in some envs
         await runCommand('npx', ['prisma', 'db', 'push']);
-        
-        // 3. Start the Node App
+
+        // 3. Seed Database (Safe)
+        console.log('==> Running Safe Seed...');
+        await runCommand('node', ['scripts/seed-safe.js']);
+
+        // 4. Start the Node App
         console.log('==> Starting Node App...');
         await runCommand('node', ['src/app.js']);
 
