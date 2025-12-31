@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Models
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  role          String         @default("EMPLOYEE") // SUPER_ADMIN, MANAGER, EMPLOYEE
+  department    String?
+  phone         String?
+  status        String         @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  assignedTasks Task[]
+}
+
+model Project {
+  id               String        @id @default(uuid())
+  projectCode      String        @unique // e.g. PRJ001
+  clientPassword   String
+  name             String
+  
+  // Client Details
+  clientFirstName  String
+  clientLastName   String
+  clientEmail      String
+  clientPhone      String
+  
+  // Spouse Details
+  spouseName       String?
+  spousePhone      String?
+  
+  // Project Details
+  location         String?
+  budget           Float?
+  paymentPercentage Int          @default(0)
+  cpNumber         String?       @unique
+  
+  // Billing
+  billingName      String?
+  billingAddress   String?
+  billingPhone     String?
+  gstin            String?
+
+  // Dates
+  startDate        DateTime?
+  deadline         DateTime?
+  handoverDate     DateTime?
+  handingOverMonth String?
+  handingOverYear  String?
+  
+  status           String        @default("ONGOING") // ONGOING, COMPLETED, HOLD
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  tasks            Task[]
+  messages         Message[]
+  images           ProjectImage[]
+  documents        ProjectDocument[]
+}
+
+model ProjectImage {
+  id        String   @id @default(uuid())
+  url       String
+  caption   String?
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model ProjectDocument {
+  id        String   @id @default(uuid())
+  url       String
+  name      String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  type        String       @default("TASK") // TASK, ISSUE
+  status      String       @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  priority    String       @default("MEDIUM") // LOW, MEDIUM, HIGH
+  stage       String?      // Freezing Mail, Production, etc.
+  
+  // Relations
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id])
+  
+  employeeId  String?
+  employee    User?        @relation(fields: [employeeId], references: [id])
+  
+  // Dates
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String
+  sender      String   
+  senderRole  String   
+  
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
